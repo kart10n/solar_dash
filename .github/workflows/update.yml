@@ -1,0 +1,26 @@
+name: Update Solar Data
+on:
+  schedule:
+    - cron: '0 20 * * *' # Кожен день о 20:00 (UTC)
+  workflow_dispatch: # Дозволяє запускати вручну кнопкою
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm install && npx playwright install chromium
+      - name: Run scraper
+        run: node scraper.js
+        env:
+          SOLAR_USER: ${{ secrets.SOLAR_USER }}
+          SOLAR_PASS: ${{ secrets.SOLAR_PASS }}
+          SOLAR_URL: ${{ secrets.SOLAR_URL }}
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'SolarBot'
+          git config --global user.email 'bot@github.com'
