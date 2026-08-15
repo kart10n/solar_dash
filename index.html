@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Dash | Knyaje-Mykola Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%); color: #00f2ff; font-family: 'Orbitron', sans-serif; overflow-x: hidden; }
+        .neon-border { border: 2px solid #00f2ff; box-shadow: 0 0 15px #00f2ff, inset 0 0 10px #00f2ff; }
+        .neon-text { text-shadow: 0 0 10px #00f2ff; }
+        .crt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 100; opacity: 0.3; }
+        .grid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(to right, #1a1a2e 1px, transparent 1px), linear-gradient(to bottom, #1a1a2e 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
+        .forecast-card { background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0, 242, 255, 0.2); transition: all 0.3s; }
+        .forecast-card:hover { background: rgba(0, 242, 255, 0.15); border-color: #00f2ff; transform: translateY(-5px); }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+    <div class="grid-bg"></div>
+    <div class="crt-overlay"></div>
+
+    <header class="w-full max-w-6xl flex justify-between items-center mb-10">
+        <div class="flex items-center gap-4">
+            <div class="w-4 h-4 rounded-full bg-green-500 shadow-[0_0_10px_#00ff00] animate-pulse"></div>
+            <h1 class="text-2xl md:text-3xl font-bold neon-text tracking-tighter">KNYAJE-MYKOLA :: CENTRAL CONTROL</h1>
+        </div>
+        <div class="hidden md:block text-right">
+            <p class="text-[10px] opacity-50 uppercase tracking-[0.5em]">Network: Ukraine / Europe-5</p>
+            <p class="text-sm neon-text" id="clock">00:00:00</p>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="neon-border p-6 rounded-lg bg-black/40 backdrop-blur-md">
+                <h2 class="text-xs opacity-60 uppercase mb-2">Yield Today</h2>
+                <div class="flex items-baseline gap-2">
+                    <span id="today-val" class="text-5xl font-bold neon-text">--.---</span>
+                    <span class="text-lg opacity-50">kWh</span>
+                </div>
+            </div>
+            <div class="neon-border p-6 rounded-lg bg-black/40 backdrop-blur-md">
+                <h2 class="text-xs opacity-60 uppercase mb-2">Total Life-Cycle</h2>
+                <div class="flex items-baseline gap-2">
+                    <span id="total-val" class="text-4xl font-bold text-pink-500" style="text-shadow: 0 0 10px #ff0055;">--.---</span>
+                    <span class="text-lg opacity-50">kWh</span>
+                </div>
+                            </div>
+            <div class="neon-border p-6 rounded-lg bg-black/40 backdrop-blur-md">
+                <h2 class="text-xs opacity-60 uppercase mb-2">Peak AC Power</h2>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-bold text-yellow-400" style="text-shadow: 0 0 10px #fbbf24;">28.8</span>
+                    <span class="text-lg opacity-50">kW</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="neon-border p-6 rounded-lg bg-black/60 backdrop-blur-xl">
+            <h2 class="text-sm opacity-70 uppercase tracking-widest mb-4">Energy Flow Dynamics (Last 24h)</h2>
+            <div style="height: 300px; width: 100%;">
+                <canvas id="solarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-sm opacity-70 uppercase tracking-[0.4em] text-center">Future Trajectory Prediction</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="forecast-card p-4 rounded text-center">
+                    <p class="text-[10px] opacity-50 mb-2">ЗАВТРА</p>
+                    <p class="text-xl font-bold text-yellow-400">24°C</p>
+                    <div class="my-2 text-2xl">☀️</div>
+                    <p class="text-xs text-cyan-300">~235 kWh</p>
+                </div>
+                <!-- ... інші дні ... -->
+                 <div class="forecast-card p-4 rounded text-center">
+                    <p class="text-[10px] opacity-50 mb-2">НАСТ. ДНІ</p>
+                    <p class="text-xl font-bold text-yellow-400">22-26°C</p>
+                    <div class="my-2 text-2xl">⛅</div>
+                    <p class="text-xs text-cyan-300">OPTIMAL</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-12 opacity-30 text-[9px] uppercase tracking-[1em] text-center">
+        Planet Express Solar Management System :: Last Update: <span id="last-update">...</span>
+    </footer>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ЦЯ ФУНКЦІЯ ЧИТАЄ ДАНІ З ФАЙЛУ data.json ЯКИЙ ОНОВЛЮЄ РОБОТ
+        async function updateFromData() {
+            try {
+                const res = await fetch('./data.json');
+                const data = await res.json();
+                document.getElementById('today-val').innerText = data.today;
+                document.getElementById('total-val').innerText = data.total;
+                document.getElementById('last-update').innerText = data.lastUpdate;
+            } catch (e) {
+                console.log('Дані ще готуються роботом...');
+                document.getElementById('today-val').innerText = 'LOAD';
+                document.getElementById('total-val').innerText = 'ING...';
+            }
+        }
+        updateFromData();
+        setInterval(updateFromData, 60000); // Перевіряти файл кожну хвилину
+
+        const ctx = document.getElementById('solarChart').getContext('2d');
+              new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+                datasets: [{
+                    label: 'Генерація (kW)',
+                    data: [0, 8, 18, 28.8, 25, 15, 5, 0],
+                    borderColor: '#00f2ff',
+                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#00f2ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(0, 242, 255, 0.1)' }, ticks: { color: '#00f2ff' } },
+                    x: { grid: { display: false }, ticks: { color: '#00f2ff' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
